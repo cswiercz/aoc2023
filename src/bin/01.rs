@@ -1,7 +1,27 @@
 advent_of_code::solution!(1);
 
 pub fn part_one(input: &str) -> Option<u32> {
-    None
+    input
+        .split_terminator('\n')
+        .map(|line| {
+            let mut moves = line.split_whitespace().take(2);
+            let first = moves.next().unwrap();
+            let second = moves.next().unwrap();
+            let score: i32 = match (first, second) {
+                ("A", "X") => 3 + 1,
+                ("A", "Y") => 6 + 2,
+                ("A", "Z") => 0 + 3,
+                ("B", "X") => 0,
+                ("B", "Y") => 0,
+                ("B", "Z") => 0,
+                ("C", "X") => 0,
+                ("C", "Y") => 0,
+                ("C", "Z") => 0,
+            }
+            return score;
+        }
+        )
+        .sum()
 }
 
 pub fn part_two(input: &str) -> Option<u32> {

@@ -1,31 +1,41 @@
 advent_of_code::solution!(1);
 
+
 pub fn part_one(input: &str) -> Option<u32> {
-    input
-        .split_terminator('\n')
-        .map(|line| {
-            let mut moves = line.split_whitespace().take(2);
-            let first = moves.next().unwrap();
-            let second = moves.next().unwrap();
-            let score: i32 = match (first, second) {
-                ("A", "X") => 3 + 1,
-                ("A", "Y") => 6 + 2,
-                ("A", "Z") => 0 + 3,
-                ("B", "X") => 0,
-                ("B", "Y") => 0,
-                ("B", "Z") => 0,
-                ("C", "X") => 0,
-                ("C", "Y") => 0,
-                ("C", "Z") => 0,
-            }
-            return score;
-        }
+    /*
+    let answer = input
+        .split('\n')
+        .map(|line: &str| line
+            .chars()
+            .filter(|c| c.is_digit(10))
+            .collect::<String>()
         )
-        .sum()
+        .map(|digits| {
+            let first = digits.chars().nth(0).unwrap();
+            let last = digits.chars().last().unwrap();
+            format!("{}{}", first, last)
+        })
+        .map(|number_string| number_string.parse::<u32>().unwrap())
+        .sum();
+    */
+    let answer = input
+        .split('\n')
+        .map(|line| {
+            let iter = line.chars().filter_map(|c| c.to_digit(10));
+            let first = iter.clone().next();
+            let last = iter.clone().last();
+            format!("{}{}", first, last)
+        });
+
+    for x in answer {
+        println!("{:?}", x)
+    }
+    Some(42)
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    
+    Some(42)
 }
 
 #[cfg(test)]

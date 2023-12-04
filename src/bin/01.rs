@@ -2,40 +2,47 @@ advent_of_code::solution!(1);
 
 
 pub fn part_one(input: &str) -> Option<u32> {
-    /*
-    let answer = input
-        .split('\n')
-        .map(|line: &str| line
-            .chars()
-            .filter(|c| c.is_digit(10))
-            .collect::<String>()
-        )
-        .map(|digits| {
-            let first = digits.chars().nth(0).unwrap();
-            let last = digits.chars().last().unwrap();
-            format!("{}{}", first, last)
-        })
-        .map(|number_string| number_string.parse::<u32>().unwrap())
-        .sum();
-    */
     let answer = input
         .split('\n')
         .map(|line| {
             let iter = line.chars().filter_map(|c| c.to_digit(10));
-            let first = iter.clone().next();
-            let last = iter.clone().last();
+            let first = iter.clone().next().unwrap();
+            let last = iter.clone().last().unwrap();
             format!("{}{}", first, last)
-        });
+        })
+        .map(|number_string| number_string.parse::<u32>().unwrap())
+        .sum();
+    Some(answer)
+}
 
-    for x in answer {
-        println!("{:?}", x)
-    }
-    Some(42)
+fn insert_digits(line: &str) -> String {
+    let mut s = String::from(line);
+    s = s.replace("one", "o1ne");
+    s = s.replace("two", "t2wo");
+    s = s.replace("three", "t3hree");
+    s = s.replace("four", "f4our");
+    s = s.replace("five", "f5ive");
+    s = s.replace("six", "s6ix");
+    s = s.replace("seven", "s7even");
+    s = s.replace("eight", "e8ight");
+    s = s.replace("nine", "n9ine");
+    s
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    
-    Some(42)
+    let answer = input
+        .split('\n')
+        .map(|line| insert_digits(line))
+        .map(|line| {
+            let iter = line.chars().filter_map(|c| c.to_digit(10));
+            let first = iter.clone().next().unwrap();
+            let last = iter.clone().last().unwrap();
+            format!("{}{}", first, last)
+        })
+        .map(|number_string| number_string.parse::<u32>().unwrap())
+        .inspect(|n| println!("{}", n))
+        .sum();
+    Some(answer)
 }
 
 #[cfg(test)]

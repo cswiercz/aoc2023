@@ -1,6 +1,5 @@
 advent_of_code::solution!(1);
 
-
 pub fn part_one(input: &str) -> Option<u32> {
     let answer = input
         .split('\n')

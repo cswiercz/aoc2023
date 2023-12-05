@@ -1,5 +1,3 @@
-use std::collections::{HashMap, HashSet};
-
 advent_of_code::solution!(3);
 
 #[derive(PartialEq)]
@@ -10,29 +8,62 @@ pub enum Symbol {
     Gear,
 }
 
-pub type Grid = Vec<Vec<Symbol>>;
+const NEIGHBORS: [(i32, i32); 8] = [
+    (-1, 0), (1, 0), (0, 1), (0, -1),  // LRUD
+    (-1, 1), (-1, -1), (1, 1), (1, -1) // diag
+];
 
-pub fn neighbors(grid: &Grid, i: usize, j: usize) -> Vec<(usize, usize)> {
+pub type Grid = Vec<Vec<char>>;
+
+pub fn neighbors<'a>(nrows: &'a usize, ncols: &'a usize, i: &'a usize, j: &'a usize) -> impl Iterator<Item=(usize, usize)> + 'a {
+    NEIGHBORS
+        .iter()
+        .map(|&(u, v)| (u + *i as i32, v + *j as i32))
+        .filter(|&(u, v)| (0 <= u) & (u < *nrows as i32) & (0 <= v) & (v < *ncols as i32))
+        .map(|(u, v)| (u as usize, v as usize))
+}
+
+
+pub fn make_grid(input: &str) -> Grid {
+    let mut grid = Grid::new();
+    input.split('\n').for_each(|line| grid.push(line.chars().collect()));
+    grid
+}
+
+pub fn part_one(input: &str) -> Option<u32> {
+    let grid = make_grid(input);
     let nrows = grid.len();
     let ncols = grid[0].len();
 
-    let mut coords: Vec<(usize, usize)> = Vec::new();
+    let mut current_number = String::new();
+    let mut is_adjacent = false;
+    let mut answer: u32 = 0;
 
-    // up-down-left-right
-    if i > 0 {coords.push((i-1, j))};
-    if j > 0 {coords.push((i, j-1))};
-    if i < nrows - 1 {coords.push((i+1, j))};
-    if j < ncols - 1 {coords.push((i, j+1))};
-
-    // diagonals
-    if (i > 0) & (j > 0) {coords.push((i-1, j-1))};
-    if (i > 0) & (j < ncols-1) {coords.push((i-1, j+1))};
-    if (i < nrows-1) & (j > 0) {coords.push((i+1, j-1))};
-    if (i < nrows-1) & (j < ncols-1) {coords.push((i+1, j+1))};
-
-    coords
+    for i in 0..grid.len() {
+        for j in 0..grid[0].len() {
+            if grid[i][j].is_numeric() {
+                current_number.push(grid[i][j]);
+                is_adjacent |= neighbors(&nrows, &ncols, &i, &j)
+                    .any(|(u, v)| (grid[u][v] != '.') & !grid[u][v].is_numeric())
+            } else {
+                if !current_number.is_empty() & is_adjacent {
+                    answer += current_number.as_str().parse::<u32>().unwrap();
+                } else {
+                    current_number.clear();
+                    is_adjacent = false;
+                    continue;
+                }
+            }
+        }
+    }
+    Some(answer)
 }
 
+pub fn part_two(input: &str) -> Option<u32> {
+    None
+}
+
+/*
 pub fn parse_grid(input: &str) -> Grid {
     let mut grid = Vec::new();
     input
@@ -135,6 +166,7 @@ pub fn part_two(input: &str) -> Option<u32> {
 
     Some(answer)
 }
+*/
 
 #[cfg(test)]
 mod tests {

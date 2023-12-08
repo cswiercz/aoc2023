@@ -1,21 +1,26 @@
+use std::collections::{HashMap, HashSet};
+
 advent_of_code::solution!(3);
 
-#[derive(PartialEq)]
-pub enum Symbol {
-    Digit(char),
-    Empty,
-    Symbol,
-    Gear,
-}
-
 const NEIGHBORS: [(i32, i32); 8] = [
-    (-1, 0), (1, 0), (0, 1), (0, -1),  // LRUD
-    (-1, 1), (-1, -1), (1, 1), (1, -1) // diag
+    (-1, 0),
+    (1, 0),
+    (0, 1),
+    (0, -1),
+    (-1, 1),
+    (-1, -1),
+    (1, 1),
+    (1, -1),
 ];
 
 pub type Grid = Vec<Vec<char>>;
 
-pub fn neighbors<'a>(nrows: &'a usize, ncols: &'a usize, i: &'a usize, j: &'a usize) -> impl Iterator<Item=(usize, usize)> + 'a {
+pub fn neighbors<'a>(
+    nrows: &'a usize,
+    ncols: &'a usize,
+    i: &'a usize,
+    j: &'a usize,
+) -> impl Iterator<Item = (usize, usize)> + 'a {
     NEIGHBORS
         .iter()
         .map(|&(u, v)| (u + *i as i32, v + *j as i32))
@@ -23,150 +28,84 @@ pub fn neighbors<'a>(nrows: &'a usize, ncols: &'a usize, i: &'a usize, j: &'a us
         .map(|(u, v)| (u as usize, v as usize))
 }
 
-
 pub fn make_grid(input: &str) -> Grid {
     let mut grid = Grid::new();
-    input.split('\n').for_each(|line| grid.push(line.chars().collect()));
+    input
+        .split('\n')
+        .for_each(|line| grid.push(line.chars().collect()));
     grid
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
     let grid = make_grid(input);
-    let nrows = grid.len();
-    let ncols = grid[0].len();
+    let (nrows, ncols) = (grid.len(), grid[0].len());
 
     let mut current_number = String::new();
     let mut is_adjacent = false;
     let mut answer: u32 = 0;
 
-    for i in 0..grid.len() {
-        for j in 0..grid[0].len() {
+    for i in 0..nrows {
+        for j in 0..ncols {
             if grid[i][j].is_numeric() {
                 current_number.push(grid[i][j]);
                 is_adjacent |= neighbors(&nrows, &ncols, &i, &j)
                     .any(|(u, v)| (grid[u][v] != '.') & !grid[u][v].is_numeric())
-            } else {
-                if !current_number.is_empty() & is_adjacent {
-                    answer += current_number.as_str().parse::<u32>().unwrap();
-                } else {
-                    current_number.clear();
-                    is_adjacent = false;
-                    continue;
-                }
             }
-        }
-    }
-    Some(answer)
-}
 
-pub fn part_two(input: &str) -> Option<u32> {
-    None
-}
-
-/*
-pub fn parse_grid(input: &str) -> Grid {
-    let mut grid = Vec::new();
-    input
-        .split('\n')
-        .for_each(|line| {
-            let mut row = Vec::new();
-            line.chars().for_each(|c|
-                if c.is_numeric() {row.push(Symbol::Digit(c))}
-                else if c == '.' {row.push(Symbol::Empty)}
-                else if c == '*' {row.push(Symbol::Gear)}
-                else {row.push(Symbol::Symbol)}
-            );
-            grid.push(row)
-        });
-
-    grid
-}
-
-pub fn part_one(input: &str) -> Option<u32> {
-    let grid = parse_grid(input);
-    let nrows = grid.len();
-    let ncols = grid[0].len();
-
-    let mut current_number: String = String::new();
-    let mut is_adjacent = false;
-
-    let mut answer: u32 = 0;
-
-    for i in 0..nrows {
-        current_number.clear();
-        is_adjacent = false;
-        for j in 0..ncols {
-            if let Symbol::Digit(c) = grid[i][j] {
-                current_number.push(c);
-                is_adjacent |= neighbors(&grid, i, j)
-                    .iter()
-                    .any(|(u, v)|
-                        (grid[*u][*v] == Symbol::Symbol) | (grid[*u][*v] == Symbol::Gear)
-                    );
-            } else {
+            if !grid[i][j].is_numeric() | (j == ncols - 1) {
                 if !current_number.is_empty() & is_adjacent {
                     answer += current_number.as_str().parse::<u32>().unwrap();
                 }
                 current_number.clear();
                 is_adjacent = false;
-                continue;
             }
         }
     }
-
     Some(answer)
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    let grid = parse_grid(input);
-    let nrows = grid.len();
-    let ncols = grid[0].len();
+    let grid = make_grid(input);
+    let (nrows, ncols) = (grid.len(), grid[0].len());
 
-    let mut gears: HashMap<(usize, usize), HashSet<u32>> = HashMap::new();
-    let mut current_number: String = String::new();
+    let mut current_number = String::new();
     let mut current_adjacent_gears: HashSet<(usize, usize)> = HashSet::new();
+    let mut gear_parts: HashMap<(usize, usize), Vec<u32>> = HashMap::new();
 
     for i in 0..nrows {
         for j in 0..ncols {
-            if let Symbol::Digit(c) = grid[i][j] {
-                current_number.push(c);
-                neighbors(&grid, i, j)
-                    .iter()
-                    .filter(|(u, v)| (grid[*u][*v] == Symbol::Gear))
-                    .for_each(|(u, v)| _ = current_adjacent_gears.insert((*u, *v)));
-            } else {
+            if grid[i][j].is_numeric() {
+                current_number.push(grid[i][j]);
+                neighbors(&nrows, &ncols, &i, &j)
+                    .filter(|(u, v)| grid[*u][*v] == '*')
+                    .for_each(|(u, v)| _ = current_adjacent_gears.insert((u, v)));
+            }
+
+            if !grid[i][j].is_numeric() | (j == ncols - 1) {
                 if !current_number.is_empty() {
-                    let n = current_number.parse::<u32>().unwrap();
-                    for (u, v) in current_adjacent_gears.iter() {
-                        let key = &(*u, *v);
-                        if gears.contains_key(key) {
-                            gears.get_mut(key).unwrap().insert(n);
-                        } else {
-                            let mut s = HashSet::new();
-                            s.insert(n);
-                            gears.insert(*key, s);
-                        }
+                    let current_number = current_number.as_str().parse::<u32>().unwrap();
+                    if current_adjacent_gears.len() == 1 {
+                        let (u, v) = current_adjacent_gears.iter().next().unwrap();
+                        gear_parts
+                            .entry((*u, *v))
+                            .or_insert(Vec::new())
+                            .push(current_number);
                     }
                 }
                 current_number.clear();
                 current_adjacent_gears.clear();
-                continue;
             }
         }
     }
 
-    // gears now contains coordinate -> [adjacent part numbers]
-    let answer = gears
+    let answer = gear_parts
         .iter()
-//        .inspect(|(coord, nums)| println!("{:?}: {:?}", coord, nums))
-        .filter(|(_, nums)| nums.len() == 2)
-        .inspect(|(coord, nums)| println!("{:?}:\t {:?}", coord, nums))
-        .map(|(_, nums)| nums.iter().product::<u32>())
-        .sum();
+        .filter(|(_, v)| v.len() == 2)
+        .map(|(_, v)| v.iter().product::<u32>())
+        .sum::<u32>();
 
     Some(answer)
 }
-*/
 
 #[cfg(test)]
 mod tests {

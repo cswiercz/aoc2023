@@ -1,10 +1,10 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, cmp::Ordering, fmt::Debug};
 
 use itertools::Itertools;
 
 advent_of_code::solution!(7);
 
-#[derive(Copy, Clone, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, PartialOrd)]
 pub enum Rank {
     Two   = 2,
     Three = 3,
@@ -21,7 +21,7 @@ pub enum Rank {
     Ace   = 14,
 }
 
-#[derive(PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd)]
 pub struct Card(Rank);
 
 impl Card {
@@ -46,7 +46,7 @@ impl Card {
     }
 }
 
-#[derive(PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd)]
 pub enum HandType {
     HighCard = 1,
     OnePair = 2,
@@ -57,6 +57,7 @@ pub enum HandType {
     FiveOfAKind = 7,
 }
 
+#[derive(Debug)]
 pub struct Hand(Vec<Card>);
 
 impl Hand {
@@ -104,12 +105,14 @@ impl Hand {
 
 impl PartialEq for Hand {
     fn eq(&self, other: &Hand) -> bool {
-        (self.get_type() == other.get_type()) & (self.0[0] == other.0[0])
+        self.get_type() == other.get_type()
     }
 }
 
+impl Eq for Hand {}
+
 impl PartialOrd for Hand {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         let self_type = self.get_type();
         let other_type = other.get_type();
 
@@ -125,17 +128,34 @@ impl PartialOrd for Hand {
     }
 }
 
+impl Ord for Hand {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
 
+
+////////////////////////////////////////////////////////////////////////////////
+///
+////////////////////////////////////////////////////////////////////////////////
 pub fn part_one(input: &str) -> Option<u32> {
-    let (hands, bids): (Vec<Hand>, Vec<u32>) = input
+    let (mut hands, bids): (Vec<Hand>, Vec<u32>) = input
         .split('\n')
         .map(|line| line.split_once(' ').unwrap())
         .map(|(hand, bid)| (Hand::from(hand), bid.parse::<u32>().unwrap()))
         .unzip();
 
-    let mut indices = (0..hands.len()).collect::<Vec<usize>>();
-    indices.sort_by_key(|&i| &hands[i]);
-    None
+    let mut ranks = (0..hands.len()).collect::<Vec<usize>>();
+    ranks.sort_by_key(|&i| &hands[i]);
+
+    hands.sort();
+    hands.iter().for_each(|hand| println!("{:?}\t{:?}", hand.get_type(), hand));
+
+    let answer = ranks.iter().zip(bids.iter())
+//        .inspect(|(rank, bid)| println!("rank={}\tbid={}", **rank+1, bid))
+        .map(|(&rank, &bid)| (rank as u32 + 1) * bid)
+        .sum();
+    Some(answer)
 }
 
 pub fn part_two(input: &str) -> Option<u32> {

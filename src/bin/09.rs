@@ -30,7 +30,13 @@ pub fn forecast(sequence: &Vec<i64>) -> i64 {
 pub fn backcast(sequence: &Vec<i64>) -> i64 {
     let layers = get_layers(sequence);
 
-    0
+    let mut diff = 0;
+    let mut next = 0;
+    for layer in layers.iter().rev() {
+        next = *layer.first().unwrap() - diff;
+        diff = next;
+    }
+    next
 }
 
 pub fn part_one(input: &str) -> Option<i64> {
@@ -61,12 +67,12 @@ mod tests {
     #[test]
     fn test_part_one() {
         let result = part_one(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(114));
     }
 
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(2));
     }
 }

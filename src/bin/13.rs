@@ -17,6 +17,7 @@ pub fn transpose(grid: &Grid) -> Grid {
 
 pub fn get_reflection_column(grid: &Grid, part_two: bool) -> Option<usize> {
     let ncols = grid[0].len();
+    let mut part_one_col: Option<usize> = None;
     for col in 1..ncols {
         let length = usize::min(col, ncols - col);
         let error_count = grid
@@ -29,24 +30,31 @@ pub fn get_reflection_column(grid: &Grid, part_two: bool) -> Option<usize> {
                     .sum::<u32>()
             })
             .sum::<u32>();
+        if error_count == 0 {
+            part_one_col = Some(col);
+        }
         if part_two & (error_count == 1) {
-            return Some(col);
-        } else if error_count == 0 {
-            return Some(col);
+            println!("Found part two candidate: {}", col);
+            if (Some(col) != part_one_col) & part_one_col.is_some() {
+                println!("Found UNIQUE part two answer: {}", col);
+                return Some(col);
+            }
         }
     }
-    None
+    return part_one_col;
 }
 
 pub fn get_note(grid: &Grid, part_two: bool) -> usize {
-    if let Some(note) = get_reflection_column(grid, part_two) {
-        println!("COL: {}", note);
-        return note;
-    } else if let Some(note) = get_reflection_column(&transpose(grid), part_two) {
-        println!("ROW: {}", note);
-        return 100 * note;
+    let col_part_one = get_reflection_column(grid, false);
+    let row_part_one = get_reflection_column(&transpose(grid), false);
+    if !part_two {
+        println!("PART ONE");
+        return col_part_one.unwrap_or(100 * row_part_one.unwrap_or(0));
     }
-    unreachable!("expected reflection column or row\n{}", to_string(&grid));
+
+    let col_part_two = get_reflection_column(grid, true);
+    let row_part_two = get_reflection_column(&transpose(grid), true);
+    return col_part_two.unwrap_or(100 * row_part_two.unwrap_or(0));
 }
 
 pub fn part_one(input: &str) -> Option<usize> {

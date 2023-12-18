@@ -79,12 +79,44 @@ pub fn solve(start: Beam, grid: &Grid) -> usize {
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
-    let grid = input.lines().map(|l| l.chars().collect()).collect();
+    let grid: Grid = input.lines().map(|l| l.chars().collect()).collect();
     Some(solve(((0, 0), Direction::Right), &grid))
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let grid: Grid = input.lines().map(|l| l.chars().collect()).collect();
+    let mut answer = 0;
+
+    answer = usize::max(
+        answer,
+        (0..grid.len())
+        .map(|i| ((i, 0), Direction::Right))
+        .map(|b| solve(b, &grid))
+        .max()
+        .unwrap());
+    answer = usize::max(
+        answer,
+        (0..grid.len())
+        .map(|i| ((i, grid[0].len() - 1), Direction::Left))
+        .map(|b| solve(b, &grid))
+        .max()
+        .unwrap());
+    answer = usize::max(
+        answer,
+        (0..grid[0].len())
+        .map(|j| ((0, j), Direction::Down))
+        .map(|b| solve(b, &grid))
+        .max()
+        .unwrap());
+    answer = usize::max(
+        answer,
+        (0..grid[0].len())
+        .map(|j| ((grid.len() - 1, j), Direction::Up))
+        .map(|b| solve(b, &grid))
+        .max()
+        .unwrap());
+
+    Some(answer)
 }
 
 #[cfg(test)]
@@ -100,6 +132,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(51));
     }
 }

@@ -1,4 +1,5 @@
 use std::cmp::Ordering;
+use std::collections::HashMap;
 
 advent_of_code::solution!(19);
 
@@ -9,6 +10,7 @@ pub struct Part {
     s: u32,
 }
 
+#[derive(Debug)]
 pub struct Rule {
     cat: char,
     ord: Ordering,
@@ -43,6 +45,8 @@ impl Rule {
         }
     }
 }
+
+#[derive(Debug)]
 pub struct Workflow {
     name: String,
     rules: Vec<Rule>,
@@ -61,10 +65,21 @@ impl Workflow {
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
+    let (s_workflows, s_parts) = input.split_once("\n\n").unwrap();
+    let workflows: HashMap<String, Workflow> = s_workflows
+        .lines()
+        .map(Workflow::from)
+        .map(|w| (w.name.clone(), w))
+        .collect();
+    let parts: Vec<Part> = s_parts
+        .lines()
+        .map(Part::from)
+        .collect();
+
     None
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
+pub fn part_two(_input: &str) -> Option<u32> {
     None
 }
 

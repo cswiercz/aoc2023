@@ -10,8 +10,38 @@ pub struct Part {
 }
 
 pub struct Rule {
-    f: fn(Part) -> bool,
+    cat: char,
+    ord: Ordering,
+    val: u32,
     dst: String,
+}
+
+impl Rule {
+    pub fn from(s: &str) -> Rule {
+        let (rule_str, dst) = s.split_once(':').unwrap();
+        let ord = rule_str.chars().nth(1).unwrap();
+        let (part, val) = rule_str.split_once(ord).unwrap();
+
+        let cat = part.chars().next().unwrap();
+        let ord = match ord {
+            '>' => Ordering::Greater,
+            '<' => Ordering::Less,
+            _ => panic!(),
+        };
+        let val = val.parse::<u32>().unwrap();
+
+        Rule { cat: cat, ord: ord, val: val, dst: String::from(dst) }
+    }
+
+    pub fn eval(&self, p: &Part) -> bool {
+        match self.cat {
+            'x' => p.x.cmp(&self.val) == self.ord,
+            'm' => p.m.cmp(&self.val) == self.ord,
+            'a' => p.a.cmp(&self.val) == self.ord,
+            's' => p.s.cmp(&self.val) == self.ord,
+            _ => panic!(),
+        }
+    }
 }
 pub struct Workflow {
     name: String,
@@ -19,24 +49,15 @@ pub struct Workflow {
     end_dst: String,
 }
 
-pub fn parse_rule(s: &str) -> Rule {
-    let (rule_str, dst) = s.split_once(':').unwrap();
-    let ord = rule_str.chars().nth(1).unwrap();
-    let (part, val) = rule_str.split_once(ord).unwrap();
-    let val = val.parse::<u32>().unwrap();
-
-
-
-
-    Rule { f: |p| p.a > 0, dst: String::from(dst) }
-}
-
-pub fn parse_workflow(s: &str) -> Workflow {
-    let (name, rem) = s.split_once('{').unwrap();
-    let rules_str: Vec<&str> = rem.strip_suffix('}').unwrap().split(',').collect();
-    let (end_dst, rules_str) = rules_str[..].split_last().unwrap();
-    let rules: Vec<Rule> = rules_str.iter().map(|&s| parse_rule(s)).collect();
-    Workflow { name: String::from(name), rules: rules, end_dst: String::from(*end_dst) }
+impl Workflow {
+    pub fn from(s: &str) -> Workflow {
+        let (name, rem) = s.split_once('{').unwrap();
+        let rules_str: Vec<&str> = rem.strip_suffix('}').unwrap().split(',').collect();
+        let (end_dst, rules_str) = rules_str[..].split_last().unwrap();
+        let rules: Vec<Rule> = rules_str.iter().map(|&s| Rule::from(s)).collect();
+        
+        Workflow { name: String::from(name), rules: rules, end_dst: String::from(*end_dst) }
+    }
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
@@ -50,6 +71,15 @@ pub fn part_two(input: &str) -> Option<u32> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_from() {
+        let rule = Rule::from(&"x>0:one");
+        assert_eq!(rule.cat, 'x');
+        assert_eq!(rule.ord, Ordering::Greater);
+        assert_eq!(rule.val, 0);
+        assert_eq!(rule.dst, "one");
+    }
 
     #[test]
     fn test_part_one() {
